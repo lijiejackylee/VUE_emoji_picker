@@ -34,14 +34,21 @@ img {
 	vertical-align: calc(-0.12109375em);
 }
 
+.breath--man { animation: breathe 4.0s infinite;}
+.breath--dog { animation: breathe 0.5s infinite;}
+
+@keyframes breathe {
+	0% {transform: scale(0.95);}
+	50% {transform: scale(1.05);}
+	100% {transform: scale(0.95);}
+}
+
 		</style>
 	</head>
 	<body>
 
-		<div id="app">
-			<wizard :name="harry" :cast="oculus_reparo"></wizard>
-			<wizard :name="ron" :cast="wingardium_leviosa"></wizard>
-			<wizard :name="hermione" :cast="alohomora"></wizard>
+		<div id="app" :style="{ background: background() }">
+			<p v-html = "active" @click = "animagus" :class="breathe()"></p>
 		</div>
 
 		<script>
@@ -72,21 +79,34 @@ Vue.component("wizard",{
 var app = new Vue({
 	el: "#app",
     data: {
-        wizard      : "",
-		harry       : emojify("harry"      ),
-		hedwig      : emojify("hedwig"     ),
-		ron         : emojify("ron"        ),
-		scabbers    : emojify("scabbers"   ),
-		hermione    : emojify("hermione"   ),
-		crookshanks : emojify("crookshanks")
-    },
-    methods:{
-     	// oculus_reparo returns a spell (function) that repairs glasses		
-		oculus_reparo: cast(emojify("oculus-reparo")),		
-		// wingardium_leviosa returns a spell (function) that levitates an object
-		wingardium_leviosa: cast(emojify("wingardium-leviosa")),
-		// alohomora returns a spell (function) that unlocks a door
-		alohomora: cast(emojify("alohomora"))
+		active: emojify("sirius--man"),
+		// sirius is an object that contains two states: man and dog
+		sirius: {
+			man: emojify("sirius--man"),
+			dog: emojify("sirius--dog")
+		}
+	},
+    methods: {
+		animagus: function() {
+			this.active = (
+				this.active == this.sirius.man ? this.sirius.dog : this.sirius.man
+			)
+		},
+		breathe: function() {
+			return (
+				this.active == this.sirius.man ?
+					"breath--man" :
+					"breath--dog"
+			)
+		},
+		background: function () {
+			return (
+				this.active == this.sirius.man ?
+					"" :
+					"black"
+			)
+		},
+
     }
 })
 
