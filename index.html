@@ -39,13 +39,7 @@ img {
 	<body>
 
 		<div id="app">
-			<input type="text" v-model="message2"></input>
-			<p
-				v-html="
-					message1.slice(0, 7) +
-					message2 +
-					message1.slice(12)
-			"></p>
+			<p v-html="incendio(lumos(wizard))"></p>
 		</div>
 
 		<script>
@@ -58,11 +52,25 @@ function emojify(name) {
 	return out
 }
 
+function cast(emoji) {
+    if(!emoji) {
+        emoji ="¯\\_(ツ)_/¯";
+    }
+    else
+        return function (wizard) {
+            return emoji + wizard + emoji;
+        }
+    
+}
+
 var app = new Vue({
 	el: "#app",
     data: {
-        message1: "Hello, World! " + emojify("celebration"),
-        message2: "Vue"
+        wizard: emojify("wizard")
+    },
+    methods:{
+        lumos:cast(emojify("lumos")),
+        incendio:cast(emojify("incendio"))
     }
 })
 
