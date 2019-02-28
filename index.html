@@ -15,40 +15,60 @@ input { font: inherit; border: unset; background: unset; }
 input:focus { outline: unset; }
 
 :root {
+	--white      : #ffffff;
+	--orange     : #ff691f;
+	--yellow     : #fab81e;
+	--lightgreen : #7fdbb6;
+	--green      : #19cf86;
+	--lightblue  : #91d2fa;
+	--blue       : #1b95e0;
+	--grey       : #abb8c2;
+	--red        : #e81c4f;
+	--pink       : #f58ea8;
+	--purple     : #981ceb;
+	--black      : #000000;
+
 	font: 1rem/1.175 "BlinkMacSystemFont", -apple-system, "Roboto", sans-seri;
 }
 
 #app {
 	display: flex;
-	flex-direction: column; justify-content: center; align-items: center;
+	justify-content: center; align-items: center;
 	width: 100vw; height: 100vh;
 	font-weight: 900; font-size: 8rem;
-	color: hsl(0, 0%, 100%);
-	background: hsl(240, 100%, 67%);
+	color: var(--green);
+	user-select: none;
 }
 
-input { text-align: center; }
 
 img {
 	width: 8rem; height: 8rem;
 	vertical-align: calc(-0.12109375em);
 }
 
-.breath--man { animation: breathe 4.0s infinite;}
-.breath--dog { animation: breathe 0.5s infinite;}
-
-@keyframes breathe {
-	0% {transform: scale(0.95);}
-	50% {transform: scale(1.05);}
-	100% {transform: scale(0.95);}
+.jitter {
+	display: inline-block;
+	animation: jitter 0.33s infinite alternate ;
 }
+
+@keyframes jitter {
+	0% {transform: rotate(0deg);}
+	33% {transform: rotate(3deg);}
+	67% {transform: rotate(-3deg);}
+	100% {transform: rotate(0deg);}
+}
+
+.theme--alive {color: var(--white);background: var(--green)}
+.theme--dead  {color: var(--red);background: var(--black)}
 
 		</style>
 	</head>
 	<body>
 
-		<div id="app" :style="{ background: background() }">
-			<p v-html = "active" @click = "animagus" :class="breathe()"></p>
+		<div id="app" :class="theme()">
+			<p>Click the box! <br> the cat is ...<span v-html="cat" 
+														@click="quantum_fluctuation()"
+														:class="jittering()"></span></p>
 		</div>
 
 		<script>
@@ -59,6 +79,11 @@ img {
 function emojify(name) {
 	var out = `<img src="emojis/` + name + `.png">`
 	return out
+}
+
+function ran(...arg) {
+	var x = Math.floor(Math.random() * arg.length);
+	return arg[x];
 }
 
 function cast(emoji) {
@@ -79,33 +104,51 @@ Vue.component("wizard",{
 var app = new Vue({
 	el: "#app",
     data: {
-		active: emojify("sirius--man"),
-		// sirius is an object that contains two states: man and dog
-		sirius: {
-			man: emojify("sirius--man"),
-			dog: emojify("sirius--dog")
-		}
+		cat: emojify("box"),
+		alive_cats: [
+			emojify("cat--smile"),
+			emojify("cat--cheer"),
+			emojify("cat--laugh"),
+			emojify("cat--love" ),
+			emojify("cat--smirk"),
+			emojify("cat--kiss" ),
+			emojify("cat--fear" ),
+			emojify("cat--sad"  ),
+			emojify("cat--mad"  )
+		],
+		dead_cats: [
+			emojify("crossbones"),
+			emojify("skull")
+		],
 	},
     methods: {
-		animagus: function() {
-			this.active = (
-				this.active == this.sirius.man ? this.sirius.dog : this.sirius.man
-			)
+		is_open: function() {
+			return this.cat != emojify("box")
 		},
-		breathe: function() {
+		is_alive: function() {
 			return (
-				this.active == this.sirius.man ?
-					"breath--man" :
-					"breath--dog"
+				this.cat != emojify("crossbone") && this.cat != emojify("skull")
 			)
 		},
-		background: function () {
-			return (
-				this.active == this.sirius.man ?
-					"" :
-					"black"
-			)
+		quantum_fluctuation: function() {
+			if(this.is_open()) {
+				this.cat = emojify("box") 
+				return 
+				}
+			this.cat = ran(ran(...this.alive_cats),ran(...this.dead_cats))
+
 		},
+		jittering: function () {
+			return {
+				jitter: this.is_alive
+			}
+		},
+		theme: function() {
+			return {
+				"theme--alive": this.is_alive() && this.is_open(),
+				"theme--dead" : !this.is_alive()
+			}
+		}
 
     }
 })
