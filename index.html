@@ -32,43 +32,75 @@ input:focus { outline: unset; }
 }
 
 #app {
-	display: flex;
-	justify-content: center; align-items: center;
+	/* grid */
+	display: grid;
+	/* grid:4x3 */
+	grid-template-areas:
+		". . . ."
+		". . . ."
+		". . . .";
+	/* spacing */
+	padding: 96px; grid-gap: 32px;
+	/* fullscreen */
 	width: 100vw; height: 100vh;
-	font-weight: 900; font-size: 8rem;
-	color: var(--green);
-	user-select: none;
 }
 
-
 img {
-	width: 8rem; height: 8rem;
+	/* size */
+	width: 3.5rem; height: 3.5rem;
+	/* center offset */
 	vertical-align: calc(-0.12109375em);
 }
 
-.jitter {
-	display: inline-block;
-	animation: jitter 0.33s infinite alternate ;
+.grid-item {
+	/* grid */
+	display: grid;
+	/* grid:1x2 */
+	grid-template-rows: 65% 35%;
+	/* background */
+	background: whitesmoke;
+	/* material-ui.com/#/components/paper */
+	border-radius: 4px; box-shadow: rgba(0, 0, 0, 0.25) 0px 10px 60px;
+	/* transform */
+	transition: transform 500ms;
 }
 
-@keyframes jitter {
-	0% {transform: rotate(0deg);}
-	33% {transform: rotate(3deg);}
-	67% {transform: rotate(-3deg);}
-	100% {transform: rotate(0deg);}
+.grid-item:hover {
+	/* transition */
+	transition: transform 500ms;
+	/* transform */
+	transform: scale(1.1);
 }
 
-.theme--alive {color: var(--white);background: var(--green)}
-.theme--dead  {color: var(--red);background: var(--black)}
+.grid-cell--top, .grid-cell--bottom {
+	/* flex */
+	display: flex;
+	/* flex:center */
+	justify-content: center; align-items: center;
+}
+
+.grid-cell--top    { border-radius: 4px 4px 0 0; }
+.grid-cell--bottom { font-weight: 900; font-size: 1.75rem; }
+
+.bounce { animation: bounce 1s; }
+
+@keyframes bounce {
+	  0% { transform: rotate(  0deg) scale(1.0); }
+	 33% { transform: rotate( 12deg) scale(1.2); }
+	 67% { transform: rotate(-12deg) scale(0.8); }
+	100% { transform: rotate(  0deg) scale(1.0); }
+}
 
 		</style>
 	</head>
 	<body>
 
-		<div id="app" :class="theme()">
-			<p>Click the box! <br> the cat is ...<span v-html="cat" 
-														@click="quantum_fluctuation()"
-														:class="jittering()"></span></p>
+		<div id="app" :style="gradient(active)">
+			<swatch
+				v-for="swatch in swatches"
+				@click.native="activate(swatch)"
+				:active="active" :swatch="swatch" :effect="gradient"
+			></swatch>
 		</div>
 
 		<script>
@@ -81,76 +113,61 @@ function emojify(name) {
 	return out
 }
 
-function ran(...arg) {
-	var x = Math.floor(Math.random() * arg.length);
-	return arg[x];
-}
-
-function cast(emoji) {
-	var magic = emojify("magic");
-    return function (wizard) {
-            return  wizard + " " + magic + " " + emoji;
-        }
-    
-}
-
-Vue.component("wizard",{
-	props:["name", "cast"],
-	template: `<p v-html = "cast(name)"></p>`
-}
-
-)
+Vue.component("swatch", {
+	props: ["active", "swatch", "effect"],
+	template: `
+		<div class="grid-item">
+			<div class="grid-cell--top" :style="effect(swatch)" >
+				<span
+					v-html="swatch.emoji"
+					:class="{ bounce: swatch == active }"
+				></span>
+			</div>
+			<div class="grid-cell--bottom" :style="corrected_color()">
+				{{ swatch.color.toUpperCase() }}
+			</div>
+		</div>
+	`,
+	methods: {
+		corrected_color: function(){
+			return {
+				color: this.swatch.color == "#ffffff" ? "#000000" : this.swatch.color
+				}
+		}
+	},
+})
 
 var app = new Vue({
 	el: "#app",
-    data: {
-		cat: emojify("box"),
-		alive_cats: [
-			emojify("cat--smile"),
-			emojify("cat--cheer"),
-			emojify("cat--laugh"),
-			emojify("cat--love" ),
-			emojify("cat--smirk"),
-			emojify("cat--kiss" ),
-			emojify("cat--fear" ),
-			emojify("cat--sad"  ),
-			emojify("cat--mad"  )
-		],
-		dead_cats: [
-			emojify("crossbones"),
-			emojify("skull")
+	data: {
+		active: "",
+		swatches: [
+		    { emoji: emojify("lion"    ), color: "#ff691f" },
+		    { emoji: emojify("tiger"   ), color: "#fab81e" },
+		    { emoji: emojify("fish"    ), color: "#7fdbb6" },
+		    { emoji: emojify("frog"    ), color: "#19cf86" },
+		    { emoji: emojify("dolphin" ), color: "#91d2fa" },
+		    { emoji: emojify("whale"   ), color: "#1b95e0" },
+		    { emoji: emojify("elephant"), color: "#abb8c2" },
+		    { emoji: emojify("octopus" ), color: "#e81c4f" },
+		    { emoji: emojify("pig"     ), color: "#f58ea8" },
+		    { emoji: emojify("unicorn" ), color: "#981ceb" },
+		    { emoji: emojify("rabbit"  ), color: "#ffffff" },
+		    { emoji: emojify("wolf"    ), color: "#000000" },
 		],
 	},
-    methods: {
-		is_open: function() {
-			return this.cat != emojify("box")
+	methods: {
+		// activate actives a swatch (emoji/color)
+		activate: function (swatch) {
+			this.active = swatch
 		},
-		is_alive: function() {
-			return (
-				this.cat != emojify("crossbone") && this.cat != emojify("skull")
-			)
-		},
-		quantum_fluctuation: function() {
-			if(this.is_open()) {
-				this.cat = emojify("box") 
-				return 
-				}
-			this.cat = ran(ran(...this.alive_cats),ran(...this.dead_cats))
-
-		},
-		jittering: function () {
+		// gradient returns a precomposed gradient
+		gradient: function (swatch) {
 			return {
-				jitter: this.is_alive
-			}
-		},
-		theme: function() {
-			return {
-				"theme--alive": this.is_alive() && this.is_open(),
-				"theme--dead" : !this.is_alive()
+				background: "linear-gradient(100deg, whitesmoke -100%, " + swatch.color + ")",
 			}
 		}
-
-    }
+	}
 })
 
 		</script>
